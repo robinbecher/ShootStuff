@@ -8,22 +8,40 @@ import com.badlogic.gdx.math.Vector2;
 import java.awt.*;
 
 public class Projectile extends Rectangle {
-    public float xVelocity;
-    public float yVelocity;
+    private final Vector2 direction;
     private int damage=2;
+    public int speed=10;
     public Texture texture;
 
 
-    public Projectile(Vector2 v){
-        this.x=Math.round(v.x);
-        this.y=Math.round(v.y);
+    public Projectile(int x, int y, Vector2 direction){
+        this.x=x;
+        this.y=y;
         this.texture=new Texture(new FileHandle("projectile.png"));
         this.width = 10;
         this.height = 5;
+        this.direction=direction;
     }
 
 
     public int getDamage() {
         return damage;
     }
+
+    public void setDamage(int damage) {
+        this.damage = damage;
+    }
+
+    public int getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
+    }
+
+    public Vector2 getDirection() {
+        return direction;
+    }
 }
+

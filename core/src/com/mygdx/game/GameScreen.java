@@ -26,7 +26,6 @@ public class GameScreen implements Screen {
     int screenWidth = 1000;
     private int playerAreaWidth = 150;
     Player player = new Player();
-    private int enemiesSpawnedThisLevel;
     private long timeSinceLastShot = 0;
     private Array<Projectile> projectiles=new Array<>();
 
@@ -56,13 +55,9 @@ public class GameScreen implements Screen {
         XmlReader.Element root = xmlReader.parse(new FileHandle("levels.xml"));
 
         Array<XmlReader.Element> levelsArray = root.getChildrenByName("level");
-        int i = 1;
         for (XmlReader.Element child : levelsArray){
-//            int numOfSquares = Integer.valueOf(child.getChildByName("level".concat(String.valueOf(i))).getAttribute("numOfSquares"));
             int numOfSquares = Integer.valueOf(child.getChildByName("sq").getAttribute("numOfSquares"));
-//            int numOfCircles = Integer.valueOf(child.getChildByName("level".concat(String.valueOf(i))).getAttribute("numOfCircles"));
             int numOfCircles = Integer.valueOf(child.getChildByName("ci").getAttribute("numOfCircles"));
-//            int numOfHexagons = Integer.valueOf(child.getChildByName("level".concat(String.valueOf(i))).getAttribute("numOfHexagons"));
             int numOfHexagons = Integer.valueOf(child.getChildByName("he").getAttribute("numOfHexagons"));
             levels.add(new Level(numOfSquares,numOfCircles,numOfHexagons));
         }
@@ -72,8 +67,6 @@ public class GameScreen implements Screen {
     public void show() {
         gameMusic.setLooping(true);
         gameMusic.play();
-
-
     }
 
     @Override
@@ -88,13 +81,14 @@ public class GameScreen implements Screen {
 
         //Draw everything onto the screen
         game.batch.begin();
+        game.batch.draw(player.texture,player.x,player.y);
         for (Enemy enemy : enemies) {
             game.batch.draw(enemy.texture, enemy.x, enemy.y);
         }
         for (Projectile projectile : projectiles){
             game.batch.draw(projectile.texture,projectile.x,projectile.y);
         }
-        game.batch.draw(player.texture,player.x,player.y);
+
         game.batch.end();
 
         if (TimeUtils.nanoTime() - timeSinceLastEnemySpawn > 1000000000){
@@ -116,9 +110,11 @@ public class GameScreen implements Screen {
         if(projectiles.size>0){
             for (Projectile projectile : projectiles){
                 int i=0;
+                float distance = (projectile.speed/Gdx.graphics.getDeltaTime()/100);
+                Vector2 vector2 = projectile.getDirection().nor().scl(distance);
 
-                projectile.x+=Gdx.graphics.getDeltaTime()*projectile.xVelocity;
-                projectile.y+=Gdx.graphics.getDeltaTime()*projectile.yVelocity;
+                projectile.x+=vector2.x;
+                projectile.y+=vector2.y;
 
                 for (Enemy enemy : enemies){
                     if (projectile.intersects(enemy)){
@@ -134,12 +130,19 @@ public class GameScreen implements Screen {
         }
 
         if (Gdx.input.isTouched() && (TimeUtils.nanoTime()-timeSinceLastShot)>100000000){
-            float x = Gdx.input.getX();
-            float y = Gdx.input.getY();
+            float xClick = Gdx.input.getX();
+            float yClick = screenHeight-Gdx.input.getY();
+            double xPlayer = player.getCenterX();
+            double yPlayer = player.getCenterY();
 
-            Projectile p = new Projectile(new Vector2((float) player.getCenterX(), (float) player.getCenterY()));
-            p.xVelocity=(float) ((y-player.getCenterY())/(x-player.getCenterX()));
-            p.yVelocity=1/p.xVelocity;
+            System.out.print((float)(xClick-xPlayer)+",");
+            System.out.println((float)(yClick-yPlayer));
+
+            Vector2 v = new Vector2((float)(xClick-xPlayer),(float)(yClick-yPlayer));
+
+            Projectile p = new Projectile((int) Math.round(xPlayer), (int) Math.round(yPlayer), v);
+
+
             projectiles.add(p);
 
             timeSinceLastShot = TimeUtils.nanoTime();

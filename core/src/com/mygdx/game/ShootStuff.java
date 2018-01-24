@@ -22,6 +22,7 @@ public class ShootStuff extends Game {
 	this.setScreen(new MainMenuScreen(this));
 	}
 
+	@SuppressWarnings("EmptyMethod")
 	@Override
 	public void render () {
 		super.render();

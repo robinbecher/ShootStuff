@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<levels>
+    <level id="1" name="level1">
+        <sq numOfSquares="10"/>
+        <ci numOfCircles="5"/>
+        <he numOfHexagons="0"/>
+    </level>
+    <level id="2" name="level2">
+        <sq numOfSquares="15"/>
+        <ci numOfCircles="5"/>
+        <he numOfHexagons="2"/>
+    </level>
+    <level id="3" name="level3">
+        <sq numOfSquares="20"/>
+        <ci numOfCircles="10"/>
+        <he numOfHexagons="5"/>
+    </level>
+</levels>

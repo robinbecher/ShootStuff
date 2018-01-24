@@ -2,12 +2,11 @@ package com.mygdx.game;
 
 import Entities.*;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Graphics;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
@@ -67,6 +66,9 @@ public class GameScreen implements Screen {
     public void show() {
         gameMusic.setLooping(true);
         gameMusic.play();
+        Pixmap pm = new Pixmap(Gdx.files.internal("crosshairCursor.png"));
+        Gdx.graphics.setCursor(Gdx.graphics.newCursor(pm, 0, 0));
+        pm.dispose();
     }
 
     @Override
@@ -88,7 +90,11 @@ public class GameScreen implements Screen {
         for (Projectile projectile : projectiles){
             game.batch.draw(projectile.texture,projectile.x,projectile.y);
         }
-
+        //Draw an X at 0,0
+        Helper.drawDebugLine(new Vector2((float)player.getCenterX()-10,(float) player.getCenterY()+10),
+                new Vector2((float)player.getCenterX()+10,(float) player.getCenterY()-10),1, Color.RED, game.batch.getProjectionMatrix());
+        Helper.drawDebugLine(new Vector2((float)player.getCenterX()-10,(float) player.getCenterY()-10),
+                new Vector2((float)player.getCenterX()+10,(float) player.getCenterY()+10),1, Color.RED, game.batch.getProjectionMatrix());
         game.batch.end();
 
         if (TimeUtils.nanoTime() - timeSinceLastEnemySpawn > 1000000000){
@@ -135,11 +141,15 @@ public class GameScreen implements Screen {
             double xPlayer = player.getCenterX();
             double yPlayer = player.getCenterY();
 
-            System.out.print((float)(xClick-xPlayer)+",");
-            System.out.println((float)(yClick-yPlayer));
+            System.out.println("Click Pos: "+(xClick)+", "+yClick);
+
+            Helper.drawDebugLine(new Vector2(xClick-10,yClick+10),
+                                new Vector2(xClick+10,yClick-10),1,Color.RED,game.batch.getProjectionMatrix());
+            Helper.drawDebugLine(new Vector2(xClick-10,yClick-10),
+                    new Vector2(xClick+10,yClick+10),1,Color.RED,game.batch.getProjectionMatrix());
+
 
             Vector2 v = new Vector2((float)(xClick-xPlayer),(float)(yClick-yPlayer));
-
             Projectile p = new Projectile((int) Math.round(xPlayer), (int) Math.round(yPlayer), v);
 
 

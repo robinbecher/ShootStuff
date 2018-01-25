@@ -9,31 +9,50 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.XmlReader;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 
 public class GameScreen implements Screen {
     final ShootStuff game;
     private final OrthographicCamera camera;
     private final Music gameMusic;
+    private FitViewport viewport;
+    private float w;
+    private float h;
     Array levels = new Array();
     Level currentLevel;
     Array<Enemy> enemies = new Array();
     long timeSinceLastEnemySpawn = 0;
     int screenHeight = 600;
     int screenWidth = 1000;
+    static final int WORLD_HEIGHT = 600;
+    static final int WORLD_WIDTH = 1000;
+
     private int playerAreaWidth = 150;
+    static final int PLAYERAREA_WIDTH=MathUtils.round(WORLD_WIDTH*0.15f);
+
     Player player = new Player();
     private long timeSinceLastShot = 0;
     private Array<Projectile> projectiles=new Array<>();
 
+    //TODO: What happens if the screen resolution changes while playing?
 
     public GameScreen(final ShootStuff game) {
         this.game = game;
+        w = Gdx.graphics.getWidth();
+        h = Gdx.graphics.getHeight();
+        camera = new OrthographicCamera(WORLD_WIDTH,WORLD_HEIGHT*(h/w));
 
-        camera = new OrthographicCamera();
-        camera.setToOrtho(false, screenWidth, screenHeight);
+        //set FitViewport to the size of the game world
+        viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
+
+        //set Camera Position to be exactly the size of the FitViewport, which is the size of the game world
+        camera.position.set(camera.viewportWidth/2f,camera.viewportHeight/2f,0);
+
+
         
         initializeLevels();
 
@@ -41,8 +60,8 @@ public class GameScreen implements Screen {
 
         gameMusic = Gdx.audio.newMusic(new FileHandle("WorkerSquares.wav"));
 
-        player.x=playerAreaWidth/2;
-        player.y=screenHeight/2;
+        player.x=PLAYERAREA_WIDTH/2-player.width/2;
+        player.y=WORLD_HEIGHT/2-player.height/2;
         player.texture=new Texture(new FileHandle("player.png"));
         
     }
@@ -73,7 +92,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
-
+        //draw Background
         Gdx.gl.glClearColor(179/255f, 224/255f, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
@@ -104,8 +123,8 @@ public class GameScreen implements Screen {
         //Update enemies' position and check if they died
         for (Enemy enemy : enemies){
             enemy.x -= enemy.walkingSpeed * Gdx.graphics.getDeltaTime();
-            if (enemy.x<playerAreaWidth){
-                enemy.x=playerAreaWidth;
+            if (enemy.x<PLAYERAREA_WIDTH){
+                enemy.x=PLAYERAREA_WIDTH;
             }
             if (enemy.health<=0){
                 enemies.removeValue(enemy, true);
@@ -127,8 +146,8 @@ public class GameScreen implements Screen {
                         enemy.takeDamage(projectile.getDamage());
                     }
                 }
-                if (projectile.x>screenWidth || projectile.x<projectile.width
-                        || projectile.y<projectile.height || projectile.y>screenHeight-projectile.height){
+                if (projectile.x>WORLD_WIDTH || projectile.x<0
+                        || projectile.y<0 || projectile.y>WORLD_HEIGHT){
                     projectiles.removeIndex(i);
                 }
                 i++;
@@ -136,8 +155,11 @@ public class GameScreen implements Screen {
         }
 
         if (Gdx.input.isTouched() && (TimeUtils.nanoTime()-timeSinceLastShot)>100000000){
-            float xClick = Gdx.input.getX();
-            float yClick = screenHeight-Gdx.input.getY();
+            Vector3 touch = new Vector3(Gdx.input.getX(),Gdx.input.getY(),0);
+            Vector3 scaledTouch = camera.unproject(touch);
+
+            float xClick = scaledTouch.x;
+            float yClick = scaledTouch.y;
             double xPlayer = player.getCenterX();
             double yPlayer = player.getCenterY();
 
@@ -160,7 +182,11 @@ public class GameScreen implements Screen {
 
         if (currentLevel.isCompleted()){
             startNextLevel();
+            showNewLevelPopup(currentLevel);
         }
+    }
+
+    private void showNewLevelPopup(Level currentLevel) {
 
     }
 
@@ -207,7 +233,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
-
+            viewport.update(width, height);
     }
 
     @Override

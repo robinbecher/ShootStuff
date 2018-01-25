@@ -45,22 +45,26 @@ public class GameScreen implements Screen {
 
     private long timeSinceLastShot = 0;
     private Array<Projectile> projectiles=new Array<>();
+    private Batch batch;
 
     //TODO: What happens if the screen resolution changes while playing?
+    //TODO: Level counter in top left corner
+    //TODO: Add HUD stage
 
     public GameScreen(final ShootStuff game) {
         this.game = game;
         Helper.initiatePreferences();
         Preferences prefs = Gdx.app.getPreferences("My Preferences");
+        Gdx.input.setInputProcessor(stage);
         w = Gdx.graphics.getWidth();
         h = Gdx.graphics.getHeight();
-        camera = new OrthographicCamera(WORLD_WIDTH,WORLD_HEIGHT*(h/w));
+        camera = new OrthographicCamera(WORLD_WIDTH,WORLD_HEIGHT);
 
         //set FitViewport to the size of the game world, add that viewport to the stage
         viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
         stage = new Stage();
         stage.setViewport(viewport);
-        Gdx.input.setInputProcessor(stage);
+        batch = stage.getBatch();
 
         //set ExtendViewport to the size of the Screen, add that viewport to the new background stage
         backViewport = new ExtendViewport( Gdx.graphics.getWidth(), Gdx.graphics.getHeight() );
@@ -84,7 +88,7 @@ public class GameScreen implements Screen {
         player = new Player(PLAYERAREA_WIDTH/2-(prefs.getInteger("playerWidth"))/2,WORLD_HEIGHT/2-(prefs.getInteger("playerHeight"))/2,
                 prefs.getInteger("playerWidth"),prefs.getInteger("playerHeight"));
         player.texture=new Texture(new FileHandle("player.png"));
-
+        stage.addActor(player);
         
     }
 
@@ -120,31 +124,32 @@ public class GameScreen implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         //draw Background
         drawBackground();
+        stage.getViewport().apply();
         //let actors on the stage act
         stage.act(delta);
         //TODO whats going on yo
-//        stage.draw();
+        stage.draw();
         //do camera stuff
         camera.update();
-        game.batch.setProjectionMatrix(camera.combined);
+        batch.setProjectionMatrix(camera.combined);
 
-        //Draw everything onto the screen
-        Batch batch = stage.getBatch();
+//        batch.begin();
+//        batch.draw(player.texture,player.getX(),player.getY());
+//        for (Enemy enemy : enemies) {
+//            batch.draw(enemy.texture, enemy.getX(), enemy.getY());
+//        }
+//        for (Projectile projectile : projectiles){
+//            batch.draw(projectile.texture,projectile.getX(),projectile.getY());
+//        }
+//        batch.end();
 
-        game.batch.begin();
-        game.batch.draw(player.texture,player.getX(),player.getY());
-        for (Enemy enemy : enemies) {
-            game.batch.draw(enemy.texture, enemy.getX(), enemy.getY());
-        }
-        for (Projectile projectile : projectiles){
-            game.batch.draw(projectile.texture,projectile.getX(),projectile.getY());
-        }
         //Draw an X at 0,0
+        batch.begin();
         Helper.drawDebugLine(new Vector2((float)player.getCenterX()-10,(float) player.getCenterY()+10),
-                new Vector2((float)player.getCenterX()+10,(float) player.getCenterY()-10),1, Color.RED, game.batch.getProjectionMatrix());
+                new Vector2((float)player.getCenterX()+10,(float) player.getCenterY()-10),1, Color.RED, batch.getProjectionMatrix());
         Helper.drawDebugLine(new Vector2((float)player.getCenterX()-10,(float) player.getCenterY()-10),
-                new Vector2((float)player.getCenterX()+10,(float) player.getCenterY()+10),1, Color.RED, game.batch.getProjectionMatrix());
-        game.batch.end();
+                new Vector2((float)player.getCenterX()+10,(float) player.getCenterY()+10),1, Color.RED, batch.getProjectionMatrix());
+        batch.end();
 
         if (TimeUtils.nanoTime() - timeSinceLastEnemySpawn > 1000000000){
             spawnRandomEnemy();
@@ -152,29 +157,24 @@ public class GameScreen implements Screen {
 
         checkForInputAndSpawnProjectile();
 
-        //Update enemies' position and check if they died
+        //Check if enemies died
         for (Enemy enemy : enemies){
-//            enemy.act(delta);
             if (enemy.getX()<PLAYERAREA_WIDTH){
                 enemy.setX(PLAYERAREA_WIDTH);
             }
             if (enemy.getHealth()<=0){
                 enemies.removeValue(enemy, true);
+                stage.getActors().removeValue(enemy,true);
             }
         }
 
-        //Update Projectile positions and check if they collided with an enemy
+        //projectile collision checks
         if(projectiles.size>0){
             for (Projectile projectile : projectiles){
-                int i=0;
-
-//                projectile.act(delta);
 
                 for (Enemy enemy : enemies){
                     Rectangle rect1 = projectile.getBounds();
                     Rectangle rect2 = enemy.getBounds();
-//                    System.out.println(rect1.toString());
-//                    System.out.println(rect2.toString());
                     if (rect1.overlaps(rect2)){
                         enemy.takeDamage(projectile.getDamage());
                         projectiles.removeValue(projectile,true);
@@ -186,12 +186,11 @@ public class GameScreen implements Screen {
                     projectiles.removeValue(projectile,true);
                     stage.getActors().removeValue(projectile,true);
                 }
-                i++;
             }
         }
-
-
-
+        if (currentLevel.numOfEnemies==0){
+            currentLevel.setCompleted(true);
+        }
         if (currentLevel.isCompleted()){
             startNextLevel();
             showNewLevelPopup(currentLevel);
@@ -200,14 +199,18 @@ public class GameScreen implements Screen {
 
     private void drawBackground() {
         backStage.getBatch().begin();
-        backStage.getBatch().draw(backgroundTexture,0,0,WORLD_WIDTH,WORLD_HEIGHT);
+        backStage.getBatch().draw(backgroundTexture,0,0,Gdx.graphics.getWidth(),Gdx.graphics.getHeight());
         backStage.getBatch().end();
     }
 
     private void checkForInputAndSpawnProjectile() {
+        //TODO: stage as input processor expects viewport to be the full screen!
+//        Gdx.input.setInputProcessor(stage);
         if (Gdx.input.isTouched() && (TimeUtils.nanoTime()-timeSinceLastShot)>100000000){
             Vector3 touch = new Vector3(Gdx.input.getX(),Gdx.input.getY(),0);
-            Vector3 scaledTouch = camera.unproject(touch);
+            Vector3 scaledTouch = stage.getViewport().getCamera().unproject(touch);
+
+            System.out.println(touch.toString());
 
             float xClick = scaledTouch.x;
             float yClick = scaledTouch.y;
@@ -217,9 +220,9 @@ public class GameScreen implements Screen {
 //            System.out.println("Click Pos: "+(xClick)+", "+yClick);
 
             Helper.drawDebugLine(new Vector2(xClick-10,yClick+10),
-                    new Vector2(xClick+10,yClick-10),1,Color.RED,game.batch.getProjectionMatrix());
+                    new Vector2(xClick+10,yClick-10),1,Color.RED,batch.getProjectionMatrix());
             Helper.drawDebugLine(new Vector2(xClick-10,yClick-10),
-                    new Vector2(xClick+10,yClick+10),1,Color.RED,game.batch.getProjectionMatrix());
+                    new Vector2(xClick+10,yClick+10),1,Color.RED,batch.getProjectionMatrix());
 
 
             Vector2 v = new Vector2((float)(xClick-xPlayer),(float)(yClick-yPlayer));
@@ -257,6 +260,7 @@ public class GameScreen implements Screen {
                 newCircle.setX(WORLD_WIDTH+20);
                 newCircle.setY(new MathUtils().random(0,WORLD_HEIGHT-20));
                 enemies.add(newCircle);
+                stage.addActor(newCircle);
                 currentLevel.numOfCircles-=1;
                 currentLevel.numOfEnemies-=1;
             }else{
@@ -264,12 +268,11 @@ public class GameScreen implements Screen {
                 newHexagon.setX(WORLD_WIDTH+20);
                 newHexagon.setY(new MathUtils().random(0,WORLD_HEIGHT-20));
                 enemies.add(newHexagon);
+                stage.addActor(newHexagon);
                 currentLevel.numOfHexagons-=1;
                 currentLevel.numOfEnemies-=1;
             }
             timeSinceLastEnemySpawn= TimeUtils.nanoTime();
-        }else{
-            currentLevel.setCompleted(true);
         }
     }
 
@@ -281,7 +284,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
-            viewport.update(width, height);
+            stage.getViewport().update(width, height, false);
     }
 
     @Override

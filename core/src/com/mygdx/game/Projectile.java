@@ -13,7 +13,6 @@ public class Projectile extends Entity {
     private final Vector2 direction;
     private int damage=2;
     public int speed;
-    public Texture texture;
 
 
     public Projectile(int x, int y, Vector2 direction){

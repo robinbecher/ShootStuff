@@ -10,29 +10,33 @@ import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.XmlReader;
+import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 public class GameScreen implements Screen {
     final ShootStuff game;
     private final OrthographicCamera camera;
     private final Music gameMusic;
-    private FitViewport viewport;
     private float w;
     private float h;
     Array levels = new Array();
     Level currentLevel;
     Array<Enemy> enemies = new Array();
     long timeSinceLastEnemySpawn = 0;
-    int screenHeight = 600;
-    int screenWidth = 1000;
+
     static final int WORLD_HEIGHT = 600;
     static final int WORLD_WIDTH = 1000;
+    Stage stage, backStage;
+    ExtendViewport backViewport;
+    private FitViewport viewport;
 
-    private int playerAreaWidth = 150;
-    static final int PLAYERAREA_WIDTH=MathUtils.round(WORLD_WIDTH*0.15f);
+    private static final int PLAYERAREA_WIDTH=MathUtils.round(WORLD_WIDTH*0.15f);
 
     Player player = new Player();
     private long timeSinceLastShot = 0;
@@ -46,14 +50,24 @@ public class GameScreen implements Screen {
         h = Gdx.graphics.getHeight();
         camera = new OrthographicCamera(WORLD_WIDTH,WORLD_HEIGHT*(h/w));
 
-        //set FitViewport to the size of the game world
+        //set FitViewport to the size of the game world, add that viewport to the stage
         viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
+        stage = new Stage();
+        stage.setViewport(viewport);
+        Gdx.input.setInputProcessor(stage);
+
+        //set ExtendViewport to the size of the Screen, add that viewport to the new background stage
+        backViewport = new ExtendViewport( Gdx.graphics.getWidth(), Gdx.graphics.getHeight() );
+        backStage = new Stage();
+        backStage.setViewport( backViewport );
+
+        //draw Background
+        Texture backgroundTexture = new Texture(new FileHandle("background.png"));
+        backStage.addActor(new Image(backgroundTexture));
 
         //set Camera Position to be exactly the size of the FitViewport, which is the size of the game world
         camera.position.set(camera.viewportWidth/2f,camera.viewportHeight/2f,0);
 
-
-        
         initializeLevels();
 
         currentLevel = (Level)levels.get(0);
@@ -88,13 +102,16 @@ public class GameScreen implements Screen {
         Pixmap pm = new Pixmap(Gdx.files.internal("crosshairCursor.png"));
         Gdx.graphics.setCursor(Gdx.graphics.newCursor(pm, 0, 0));
         pm.dispose();
+
     }
 
     @Override
     public void render(float delta) {
-        //draw Background
-        Gdx.gl.glClearColor(179/255f, 224/255f, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        backStage.act();
+
+        backStage.draw(); //backStage first - we want it under stage
+        stage.draw();
 
         camera.update();
 
@@ -199,22 +216,22 @@ public class GameScreen implements Screen {
 
             if (rand<squareRange){
                 SquareEnemy newSquare = new SquareEnemy();
-                newSquare.x = screenWidth+20;
-                newSquare.y = new MathUtils().random(0,screenHeight-20);
+                newSquare.x = WORLD_WIDTH+20;
+                newSquare.y = new MathUtils().random(0,WORLD_HEIGHT-20);
                 enemies.add(newSquare);
                 currentLevel.numOfSquares-=1;
                 currentLevel.numOfEnemies-=1;
             }else if (rand<circleRange){
                 CircleEnemy newCircle = new CircleEnemy();
-                newCircle.x = screenWidth+20;
-                newCircle.y = new MathUtils().random(0,screenHeight-20);
+                newCircle.x = WORLD_WIDTH+20;
+                newCircle.y = new MathUtils().random(0,WORLD_HEIGHT-20);
                 enemies.add(newCircle);
                 currentLevel.numOfCircles-=1;
                 currentLevel.numOfEnemies-=1;
             }else{
                 HexagonEnemy newHexagon = new HexagonEnemy();
-                newHexagon.x = screenWidth+20;
-                newHexagon.y = new MathUtils().random(0,screenHeight-20);
+                newHexagon.x = WORLD_WIDTH+20;
+                newHexagon.y = new MathUtils().random(0,WORLD_HEIGHT-20);
                 enemies.add(newHexagon);
                 currentLevel.numOfHexagons-=1;
                 currentLevel.numOfEnemies-=1;

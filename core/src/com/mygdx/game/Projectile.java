@@ -2,6 +2,7 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector;
 import com.badlogic.gdx.math.Vector2;
 
@@ -17,7 +18,9 @@ public class Projectile extends Rectangle {
     public Projectile(int x, int y, Vector2 direction){
         this.x=x;
         this.y=y;
-        this.texture=new Texture(new FileHandle("projectile.png"));
+
+        int rand = MathUtils.random(0,6);
+        this.texture=new Texture(new FileHandle("projectile"+rand+".png"));
         this.width = 10;
         this.height = 5;
         this.direction=direction;

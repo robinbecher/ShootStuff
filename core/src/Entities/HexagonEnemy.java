@@ -1,14 +1,21 @@
 package Entities;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.graphics.Texture;
 
 public class HexagonEnemy extends Enemy {
 
     public HexagonEnemy(){
-        health=15;
-        walkingSpeed=80;
+        Preferences prefs = Gdx.app.getPreferences("My Preferences");
         texture=new Texture("hexagonEnemy.png");
-        height = 32;
-        width = 32;
+
+        setWidth(prefs.getInteger("HexagonEnemyWidth"));
+        setHeight(prefs.getInteger("HexagonEnemyHeight"));
+        setHealth(prefs.getInteger("HexagonEnemyHealth"));
+        setSpeed(prefs.getInteger("HexagonEnemySpeed"));
     }
+
+
+
 }

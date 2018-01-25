@@ -1,11 +1,15 @@
 package Entities;
 
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.math.Rectangle;
-
 public abstract class Enemy extends Entity{
 
-    public int walkingSpeed;
+    public int speed;
 
+    @Override
+    public void act(float delta) {
+        setX(getX()- speed *delta);
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
+    }
 }

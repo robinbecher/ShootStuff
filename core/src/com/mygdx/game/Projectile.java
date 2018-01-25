@@ -1,28 +1,32 @@
 package com.mygdx.game;
 
+import Entities.Entity;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
-import java.awt.*;
-
-public class Projectile extends Rectangle {
+public class Projectile extends Entity {
     private final Vector2 direction;
     private int damage=2;
-    public int speed=10;
+    public int speed;
     public Texture texture;
 
 
     public Projectile(int x, int y, Vector2 direction){
-        this.x=x;
-        this.y=y;
+        Preferences prefs = Gdx.app.getPreferences("My Preferences");
+
+        setX(x);
+        setY(y);
 
         int rand = MathUtils.random(0,6);
-        this.texture=new Texture(new FileHandle("projectile"+rand+".png"));
-        this.width = 10;
-        this.height = 5;
+        texture=new Texture(new FileHandle("projectile"+rand+".png"));
+        setWidth(prefs.getInteger("ProjectileWidth"));
+        setHeight(prefs.getInteger("ProjectileHeight"));
+        setSpeed(prefs.getInteger("ProjectileSpeed"));
         this.direction=direction;
     }
 
@@ -45,6 +49,19 @@ public class Projectile extends Rectangle {
 
     public Vector2 getDirection() {
         return direction;
+    }
+
+    public Rectangle getBounds() {
+        return new Rectangle(Math.round(getX()),Math.round(getY()),Math.round(getWidth()),Math.round(getHeight()));
+    }
+
+    @Override
+    public void act(float delta) {
+        float distance = (speed/delta/100);
+        Vector2 vector2 = getDirection().nor().scl(distance);
+
+        setX(getX()+vector2.x);
+        setY(getY()+vector2.y);
     }
 }
 

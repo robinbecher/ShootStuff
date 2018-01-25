@@ -1,14 +1,18 @@
 package Entities;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.graphics.Texture;
 
 public class CircleEnemy extends Enemy {
 
     public CircleEnemy(){
-        health=8;
-        walkingSpeed=120;
+        Preferences prefs = Gdx.app.getPreferences("My Preferences");
         texture= new Texture("circleEnemy.png");
-        height = 32;
-        width = 32;
+
+        setWidth(prefs.getInteger("CircleEnemyWidth"));
+        setHeight(prefs.getInteger("CircleEnemyHeight"));
+        setHealth(prefs.getInteger("CircleEnemyHealth"));
+        setSpeed(prefs.getInteger("CircleEnemySpeed"));
     }
 }

@@ -21,7 +21,7 @@ public class Projectile extends Entity {
         setX(x);
         setY(y);
 
-        int rand = MathUtils.random(0,6);
+        int rand = MathUtils.random(0,3);
         texture=new Texture(new FileHandle("projectile"+rand+".png"));
         setWidth(prefs.getInteger("ProjectileWidth"));
         setHeight(prefs.getInteger("ProjectileHeight"));

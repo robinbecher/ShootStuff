@@ -112,7 +112,8 @@ public class GameScreen implements Screen {
         gameMusic.setLooping(true);
         gameMusic.play();
         Pixmap pm = new Pixmap(Gdx.files.internal("crosshairCursor.png"));
-        Gdx.graphics.setCursor(Gdx.graphics.newCursor(pm, 0, 0));
+        //TODO: Change Crosshair settings to fix click inaccuracy. Hotspot?
+        Gdx.graphics.setCursor(Gdx.graphics.newCursor(pm, 16, 16));
         pm.dispose();
         Gdx.gl.glClearColor(0,0,0,1);
 
@@ -133,22 +134,11 @@ public class GameScreen implements Screen {
         batch.setProjectionMatrix(camera.combined);
 
 //        batch.begin();
-//        batch.draw(player.texture,player.getX(),player.getY());
-//        for (Enemy enemy : enemies) {
-//            batch.draw(enemy.texture, enemy.getX(), enemy.getY());
-//        }
-//        for (Projectile projectile : projectiles){
-//            batch.draw(projectile.texture,projectile.getX(),projectile.getY());
-//        }
+//        Helper.drawDebugLine(new Vector2((float)player.getCenterX()-10,(float) player.getCenterY()+10),
+//                new Vector2((float)player.getCenterX()+10,(float) player.getCenterY()-10),1, Color.RED, batch.getProjectionMatrix());
+//        Helper.drawDebugLine(new Vector2((float)player.getCenterX()-10,(float) player.getCenterY()-10),
+//                new Vector2((float)player.getCenterX()+10,(float) player.getCenterY()+10),1, Color.RED, batch.getProjectionMatrix());
 //        batch.end();
-
-        //Draw an X at 0,0
-        batch.begin();
-        Helper.drawDebugLine(new Vector2((float)player.getCenterX()-10,(float) player.getCenterY()+10),
-                new Vector2((float)player.getCenterX()+10,(float) player.getCenterY()-10),1, Color.RED, batch.getProjectionMatrix());
-        Helper.drawDebugLine(new Vector2((float)player.getCenterX()-10,(float) player.getCenterY()-10),
-                new Vector2((float)player.getCenterX()+10,(float) player.getCenterY()+10),1, Color.RED, batch.getProjectionMatrix());
-        batch.end();
 
         if (TimeUtils.nanoTime() - timeSinceLastEnemySpawn > 1000000000){
             spawnRandomEnemy();
@@ -198,13 +188,13 @@ public class GameScreen implements Screen {
 
     private void drawBackground() {
         backStage.getBatch().begin();
+        backStage.getBatch().disableBlending();
         backStage.getBatch().draw(backgroundTexture,0,0,Gdx.graphics.getWidth(),Gdx.graphics.getHeight());
+        backStage.getBatch().enableBlending();
         backStage.getBatch().end();
     }
 
     private void checkForInputAndSpawnProjectile() {
-        //TODO: stage as input processor expects viewport to be the full screen!
-//        Gdx.input.setInputProcessor(stage);
         if (Gdx.input.isTouched() && (TimeUtils.nanoTime()-timeSinceLastShot)>100000000){
             Vector3 touch = new Vector3(Gdx.input.getX(),Gdx.input.getY(),0);
             Vector3 scaledTouch = stage.getViewport().unproject(touch);
@@ -216,17 +206,13 @@ public class GameScreen implements Screen {
             double xPlayer = player.getCenterX();
             double yPlayer = player.getCenterY();
 
-//            System.out.println("Click Pos: "+(xClick)+", "+yClick);
-
-            Helper.drawDebugLine(new Vector2(xClick-10,yClick+10),
-                    new Vector2(xClick+10,yClick-10),1,Color.RED,batch.getProjectionMatrix());
-            Helper.drawDebugLine(new Vector2(xClick-10,yClick-10),
-                    new Vector2(xClick+10,yClick+10),1,Color.RED,batch.getProjectionMatrix());
-
+//            Helper.drawDebugLine(new Vector2(xClick-10,yClick+10),
+//                    new Vector2(xClick+10,yClick-10),1,Color.RED,batch.getProjectionMatrix());
+//            Helper.drawDebugLine(new Vector2(xClick-10,yClick-10),
+//                    new Vector2(xClick+10,yClick+10),1,Color.RED,batch.getProjectionMatrix());
 
             Vector2 v = new Vector2((float)(xClick-xPlayer),(float)(yClick-yPlayer));
             Projectile p = new Projectile((int) Math.round(xPlayer), (int) Math.round(yPlayer), v);
-
 
             projectiles.add(p);
             stage.addActor(p);

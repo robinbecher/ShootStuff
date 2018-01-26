@@ -124,7 +124,6 @@ public class GameScreen implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         //draw Background
         drawBackground();
-        stage.getViewport().apply();
         //let actors on the stage act
         stage.act(delta);
         //TODO whats going on yo
@@ -208,7 +207,7 @@ public class GameScreen implements Screen {
 //        Gdx.input.setInputProcessor(stage);
         if (Gdx.input.isTouched() && (TimeUtils.nanoTime()-timeSinceLastShot)>100000000){
             Vector3 touch = new Vector3(Gdx.input.getX(),Gdx.input.getY(),0);
-            Vector3 scaledTouch = stage.getViewport().getCamera().unproject(touch);
+            Vector3 scaledTouch = stage.getViewport().unproject(touch);
 
             System.out.println(touch.toString());
 

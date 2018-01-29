@@ -3,9 +3,6 @@ package com.mygdx.game;
 import com.badlogic.gdx.utils.Array;
 
 public class Level {
-
-
-
     public int levelIndex;
 
     //Number of enemies that still have to spawn
@@ -13,30 +10,33 @@ public class Level {
     int numOfSquares;
     int numOfCircles;
     int numOfHexagons;
+    int numOfEnemiesAlive;
 
     boolean completed = false;
 
-//    Array allEnemies = new Array();
 
-
-    public Level(int numOfSquares,int numOfCircles, int numOfHexagons){
+    public Level(int numOfSquares,int numOfCircles, int numOfHexagons, int levelIndex){
 
         this.numOfSquares = numOfSquares;
         this.numOfCircles = numOfCircles;
         this.numOfHexagons = numOfHexagons;
 
         this.numOfEnemies = numOfSquares+numOfCircles+numOfHexagons;
+        this.numOfEnemiesAlive = this.numOfEnemies;
 
-//        for (int i = 0;i<numOfSquares;i++){
-//            allEnemies.add(new SquareEnemy());
-//        }
-//        for (int i = 0;i<numOfCircles; i++){
-//            allEnemies.add(new CircleEnemy());
-//        }
-//        for (int i = 0;i<numOfHexagons; i++){
-//            allEnemies.add(new HexagonEnemy());
-//        }
+        this.levelIndex = levelIndex;
 
+    }
+    public void decreaseNumOfEnemiesAlive(){
+        numOfEnemiesAlive--;
+    }
+
+    public void setLevelIndex(int levelIndex) {
+        this.levelIndex = levelIndex;
+    }
+
+    public void setNumOfEnemies(int numOfEnemies) {
+        this.numOfEnemies = numOfEnemies;
     }
 
     public int getNumOfSquares() {

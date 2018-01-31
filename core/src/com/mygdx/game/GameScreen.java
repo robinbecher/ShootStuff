@@ -51,6 +51,7 @@ public class GameScreen implements Screen {
     //TODO: What happens if the screen resolution changes while playing?
     //TODO: Level counter in top left corner
     //TODO: Add HUD gameStage
+    //TODO: "Richt click" when touching (holding) not registered as shooting
 
     public GameScreen(final ShootStuff game) {
         this.game = game;
@@ -190,7 +191,7 @@ public class GameScreen implements Screen {
         if (currentLevel.isCompleted() && !gameOver){
             if(levels.size>currentLevel.getLevelIndex()){
                 startNextLevel();
-                showNewLevelPopup(currentLevel);
+//                showNewLevelPopup(currentLevel);
             }else{
                 System.out.println("YOU WIN!!!!!!!!!!");
                 gameOver=true;
@@ -228,7 +229,7 @@ public class GameScreen implements Screen {
             Vector2 v = new Vector2((float)(xClick-xPlayer),(float)(yClick-yPlayer));
 
             //if click is not too far left
-            if (xClick>PLAYERAREA_WIDTH){
+            if (xClick>PLAYERAREA_WIDTH/2){
                 //spawn a projectile
                 Projectile p = new Projectile((int) Math.round(xPlayer), (int) Math.round(yPlayer), v);
                 projectiles.add(p);
